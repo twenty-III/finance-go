@@ -39,4 +39,7 @@ type IExpenseRepository interface {
 
 	// ListByAmount retrieves paginated expenses by user ID based on amount.
 	ListByAmount(params ListByAmountParams) ([]*expensemodel.Expense, error)
+
+	// Delete removes an expense by its unique identifier and user ID.
+	Delete(id uuid.UUID, userId uuid.UUID) error
 }

@@ -73,6 +73,7 @@ func main() {
 	getExpenseHandler := initializeGetExpenseHandler(expenseRepository)
 	getExpensesHandler := initializeGetExpensesHandler(expenseRepository)
 	patchExpenseHandler := initializePatchExpenseHandler(expenseRepository)
+	deleteExpenseHandler := initializeDeleteExpenseHandler(expenseRepository)
 
 	userHandler := user.NewHandler(user.Config{
 		UserRepository:  userRepository,
@@ -86,6 +87,7 @@ func main() {
 		GetHandler:         getExpenseHandler,
 		PatchHandler:       patchExpenseHandler,
 		GetMultipleHandler: getExpensesHandler,
+		DeleteHandler:      deleteExpenseHandler,
 	})
 
 	resolver := graph.NewResolver(graph.ResolverConfig{
@@ -114,6 +116,10 @@ func main() {
 
 func initializePatchExpenseHandler(expenseRepository *expenserepo.Repository) *expensecmd.PatchHandler {
 	return expensecmd.NewPatchHandler(expenseRepository)
+}
+
+func initializeDeleteExpenseHandler(expenseRepository *expenserepo.Repository) *expensecmd.DeleteHandler {
+	return expensecmd.NewDeleteHandler(expenseRepository)
 }
 
 func initializeGetExpenseHandler(expenseRepository *expenserepo.Repository) *expensqry.GetHandler {

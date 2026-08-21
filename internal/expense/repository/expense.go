@@ -127,3 +127,21 @@ func (e *Repository) ListByAmount(params irepository.ListByAmountParams) ([]*exp
 	}
 	return expenses, nil
 }
+
+// Delete removes an expense from the database by its ID and user ID.
+func (e *Repository) Delete(id uuid.UUID, userId uuid.UUID) error {
+	result, err := e.db.Exec(`DELETE FROM expenses WHERE id = $1 AND user_id = $2`, id, userId)
+	if err != nil {
+		return errdmn.NewUnexpected(fmt.Sprintf("error deleting expense: %v", err))
+	}
+	
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errdmn.NewUnexpected(fmt.Sprintf("error getting rows affected: %v", err))
+	}
+	if rowsAffected == 0 {
+		return errexpense.NotFound
+	}
+
+	return nil
+}

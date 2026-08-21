@@ -30,6 +30,7 @@ type ExpensesHandler struct {
 	getHandler         iquery.IHandler[*expensqry.GetQuery, *expensemodel.Expense]
 	getMultipleHandler iquery.IHandler[*expensqry.GetMultipleQuery, []*expensemodel.Expense]
 	patchHandler       icmd.IHandler[*expensecmd.PatchCommand, *expensemodel.Expense]
+	deleteHandler      icmd.IHandler[*expensecmd.DeleteCommand, any]
 }
 
 // Config contains the configuration for setting up the ExpensesHandler,
@@ -39,6 +40,7 @@ type Config struct {
 	GetHandler         iquery.IHandler[*expensqry.GetQuery, *expensemodel.Expense]
 	GetMultipleHandler iquery.IHandler[*expensqry.GetMultipleQuery, []*expensemodel.Expense]
 	PatchHandler       icmd.IHandler[*expensecmd.PatchCommand, *expensemodel.Expense]
+	DeleteHandler      icmd.IHandler[*expensecmd.DeleteCommand, any]
 }
 
 // NewHandler initializes and returns a new ExpensesHandler with the provided configuration.
@@ -48,6 +50,7 @@ func NewHandler(config Config) *ExpensesHandler {
 		getHandler:         config.GetHandler,
 		patchHandler:       config.PatchHandler,
 		getMultipleHandler: config.GetMultipleHandler,
+		deleteHandler:      config.DeleteHandler,
 	}
 }
 
@@ -77,6 +80,11 @@ func (h *ExpensesHandler) RegisterProtected(router *mux.Router) {
 		"/users/{userId}/expenses/{expenseId}",
 		h.handlePatch,
 	).Methods(http.MethodPatch)
+
+	router.HandleFunc(
+		"/users/{userId}/expenses/{expenseId}",
+		h.handleDelete,
+	).Methods(http.MethodDelete)
 }
 
 // handleAdd handles the request to add a new expense for a user.
@@ -284,4 +292,36 @@ func (h *ExpensesHandler) extractAndValidateParams(r *http.Request) (string, int
 	}
 
 	return cursor, limit, sortField, sortOrder, nil
+}
+
+// handleDelete handles the request to delete an existing expense.
+func (h *ExpensesHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
+	userId, err := h.UUIDParam(r, "userId")
+	if err != nil {
+		h.Problem(w, err.(errapi.Error))
+		return
+	}
+
+	expenseId, err := h.UUIDParam(r, "expenseId")
+	if err != nil {
+		h.Problem(w, err.(errapi.Error))
+		return
+	}
+
+	err = h.MatchPathUserIdctxUserId(r, userId)
+	if err != nil {
+		h.Problem(w, err.(errapi.Error))
+		return
+	}
+
+	_, err = h.deleteHandler.Handle(&expensecmd.DeleteCommand{
+		Id:     expenseId,
+		UserId: userId,
+	})
+
+	if err != nil {
+		h.Problem(w, errapi.Map(err.(ierr.IErr)))
+		return
+	}
+	h.Respond(w, http.StatusNoContent, nil)
 }
