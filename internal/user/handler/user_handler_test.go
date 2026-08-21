@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	appError "github.com/mohit/finance-go/internal/common/app_error"
 	handlerInterface "github.com/mohit/finance-go/internal/common/cqrs/command"
 	queryHandlerInterface "github.com/mohit/finance-go/internal/common/cqrs/query"
@@ -103,7 +102,7 @@ func TestHandler_UserRegistrationAndLogin(t *testing.T) {
 	}
 	h := NewHandler(config)
 
-	router := mux.NewRouter()
+	router := http.NewServeMux()
 	h.RegisterPublic(router)
 
 	tests := []struct {
@@ -115,77 +114,77 @@ func TestHandler_UserRegistrationAndLogin(t *testing.T) {
 	}{
 		{
 			name:           "Successful Registration",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    dto.RegisterRequest{Username: "newuser", Password: "StrongPassword!123"},
 			expectedStatus: http.StatusOK,
 			expectedError:  "",
 		},
 		{
 			name:           "Username In Use",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    dto.RegisterRequest{Username: "existinguser", Password: "StrongPassword!123"},
 			expectedStatus: http.StatusConflict,
 			expectedError:  erruser.UsernameConflict.Error(),
 		},
 		{
 			name:           "Weak Password",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    dto.RegisterRequest{Username: "newuser", Password: "weakpassword"},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  erruser.WeakPassword.Error(),
 		},
 		{
 			name:           "Username Too Long",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    dto.RegisterRequest{Username: "toolongusername", Password: "StrongPassword!123"},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  erruser.UsernameTooLong.Error(),
 		},
 		{
 			name:           "Username Too Short",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    dto.RegisterRequest{Username: "short", Password: "StrongPassword!123"},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  erruser.UsernameTooShort.Error(),
 		},
 		{
 			name:           "Username Invalid Format",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    dto.RegisterRequest{Username: "invalidformat!", Password: "StrongPassword!123"},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  erruser.UsernameInvalidFormat.Error(),
 		},
 		{
 			name:           "Invalid Register Request Body",
-			url:            "/users/register",
+			url:            "/api/v1/users/register",
 			requestBody:    struct{}{},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  "invalid payload: Key: 'RegisterRequest.Username' Error:Field validation for 'Username' failed on the 'required' tag\nKey: 'RegisterRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag",
 		},
 		{
 			name:           "Successful Login",
-			url:            "/users/login",
+			url:            "/api/v1/users/login",
 			requestBody:    dto.LoginUserRequest{Username: "existinguser", Password: "correctpassword"},
 			expectedStatus: http.StatusOK,
 			expectedError:  "",
 		},
 		{
 			name:           "Nonexistent User",
-			url:            "/users/login",
+			url:            "/api/v1/users/login",
 			requestBody:    dto.LoginUserRequest{Username: "nonexistentuser", Password: "correctpassword"},
 			expectedStatus: http.StatusUnauthorized,
 			expectedError:  "invalid credentials",
 		},
 		{
 			name:           "Invalid Credentials",
-			url:            "/users/login",
+			url:            "/api/v1/users/login",
 			requestBody:    dto.LoginUserRequest{Username: "existinguser", Password: "wrongpassword"},
 			expectedStatus: http.StatusUnauthorized,
 			expectedError:  "invalid credentials",
 		},
 		{
 			name:           "Invalid Login Request Body",
-			url:            "/users/login",
+			url:            "/api/v1/users/login",
 			requestBody:    struct{}{},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  "invalid payload: Key: 'LoginUserRequest.Username' Error:Field validation for 'Username' failed on the 'required' tag\nKey: 'LoginUserRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag",

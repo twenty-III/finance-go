@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	errapi "github.com/mohit/finance-go/internal/server/error"
 )
 
@@ -239,9 +238,10 @@ func TestBaseHandler(t *testing.T) {
 		invalidUUID := "invalid-uuid"
 
 		runTestCase := func(paramName, paramValue string, shouldErr bool) {
-			r := mux.SetURLVars(&http.Request{}, map[string]string{
-				"id": paramValue,
-			})
+			r := &http.Request{}
+			if paramValue != "" {
+				r.SetPathValue("id", paramValue)
+			}
 
 			_, err := handler.UUIDParam(r, paramName)
 			if (err != nil) != shouldErr {

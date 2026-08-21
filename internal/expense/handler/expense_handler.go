@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
 	icmd "github.com/mohit/finance-go/internal/common/cqrs/command"
 	iquery "github.com/mohit/finance-go/internal/common/cqrs/query"
 	ierr "github.com/mohit/finance-go/internal/common/domain_error"
@@ -56,36 +55,18 @@ func NewHandler(config Config) *ExpensesHandler {
 
 // RegisterPublic registers public routes for the ExpensesHandler.
 // Currently, no public routes are defined.
-func (h *ExpensesHandler) RegisterPublic(router *mux.Router) {}
+func (h *ExpensesHandler) RegisterPublic(mux *http.ServeMux) {}
 
 // RegisterProtected registers protected routes for the ExpensesHandler,
 // including routes for adding, retrieving, and updating expenses.
-func (h *ExpensesHandler) RegisterProtected(router *mux.Router) {
-	router.HandleFunc(
-		"/users/{userId}/expenses",
-		h.handleAdd,
-	).Methods(http.MethodPost)
-
-	router.HandleFunc(
-		"/users/{userId}/expenses/{expenseId}",
-		h.handleById,
-	).Methods(http.MethodGet)
-
-	router.HandleFunc(
-		"/users/{userId}/expenses",
-		h.handleByUserId,
-	).Methods(http.MethodGet)
-
-	router.HandleFunc(
-		"/users/{userId}/expenses/{expenseId}",
-		h.handlePatch,
-	).Methods(http.MethodPatch)
-
-	router.HandleFunc(
-		"/users/{userId}/expenses/{expenseId}",
-		h.handleDelete,
-	).Methods(http.MethodDelete)
+func (h *ExpensesHandler) RegisterProtected(mux *http.ServeMux, authMiddleware func(http.Handler) http.Handler) {
+	mux.Handle("POST /api/v1/users/{userId}/expenses", authMiddleware(http.HandlerFunc(h.handleAdd)))
+	mux.Handle("GET /api/v1/users/{userId}/expenses/{expenseId}", authMiddleware(http.HandlerFunc(h.handleById)))
+	mux.Handle("GET /api/v1/users/{userId}/expenses", authMiddleware(http.HandlerFunc(h.handleByUserId)))
+	mux.Handle("PATCH /api/v1/users/{userId}/expenses/{expenseId}", authMiddleware(http.HandlerFunc(h.handlePatch)))
+	mux.Handle("DELETE /api/v1/users/{userId}/expenses/{expenseId}", authMiddleware(http.HandlerFunc(h.handleDelete)))
 }
+
 
 // handleAdd handles the request to add a new expense for a user.
 // It validates the request body, constructs the appropriate command,

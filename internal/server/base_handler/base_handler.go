@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	errapi "github.com/mohit/finance-go/internal/server/error"
 	"github.com/mohit/finance-go/internal/server/utils"
 )
@@ -114,9 +113,8 @@ func (h *BaseHandler) BaseURL(r *http.Request) string {
 // UUIDParam retrieves a UUID path parameter from the request URL. It returns an error
 // if the parameter is missing or not a valid UUID.
 func (h *BaseHandler) UUIDParam(r *http.Request, paramName string) (uuid.UUID, error) {
-	vars := mux.Vars(r)
-	idStr, ok := vars[paramName]
-	if !ok {
+	idStr := r.PathValue(paramName)
+	if idStr == "" {
 		return uuid.Nil, errapi.NewBadRequest(fmt.Sprintf("path parameter %v is missing", paramName))
 	}
 

@@ -5,7 +5,6 @@ go 1.25.7
 require (
 	github.com/99designs/gqlgen v0.17.54
 	github.com/go-playground/validator/v10 v10.22.0
-	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/pressly/goose/v3 v3.27.3

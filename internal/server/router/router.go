@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gorilla/mux"
 	api "github.com/mohit/finance-go/internal/server/rest"
 )
 
@@ -58,40 +57,25 @@ func NewRouter(config Config) *Router {
 // - Public routes: No authentication required.
 // - Protected routes: Authentication required.
 func (r *Router) Run() error {
-	router := mux.NewRouter()
-	router.Use((r.rateLimitMiddleware))
+	mux := http.NewServeMux()
 
-	// Setting up routes under baseURL
-	api := router.PathPrefix("/api").Subrouter()
-
-	{
-		// Public routes (accessible without authentication)
-		publicRoutes := api.PathPrefix("/v1").Subrouter()
-		{
-			for _, c := range r.restfullControllers {
-				c.RegisterPublic(publicRoutes)
-			}
-		}
-
-		// Protected routes (authentication required)
-		protectedRoutes := api.PathPrefix("/v1").Subrouter()
-		protectedRoutes.Use(r.authorizationMiddleware)
-		{
-			for _, c := range r.restfullControllers {
-				c.RegisterProtected(protectedRoutes)
-			}
-		}
-
-		graphApi := api.PathPrefix(("/graph")).Subrouter()
-		graphApi.Use(r.populateClaimsMiddleware)
-
-		graphApi.Handle("/", playground.Handler("GraphQL playground", "/query"))
-		graphApi.Handle("/query", r.graphQlController)
+	for _, c := range r.restfullControllers {
+		c.RegisterPublic(mux)
+		c.RegisterProtected(mux, r.authorizationMiddleware)
 	}
 
+	mux.Handle("/api/graph/", r.populateClaimsMiddleware(playground.Handler("GraphQL playground", "/api/graph/query")))
+	mux.Handle("/api/graph/query", r.populateClaimsMiddleware(r.graphQlController))
+
 	// Serve the frontend static files
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend")))
+	mux.Handle("/", http.FileServer(http.Dir("./frontend")))
+
+	// Wrap the entire mux with the rate limit middleware
+	var handler http.Handler = mux
+	if r.rateLimitMiddleware != nil {
+		handler = r.rateLimitMiddleware(mux)
+	}
 
 	log.Println("Listening on", r.addr)
-	return http.ListenAndServe(r.addr, router)
+	return http.ListenAndServe(r.addr, handler)
 }

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	icmd "github.com/mohit/finance-go/internal/common/cqrs/command"
 	iquery "github.com/mohit/finance-go/internal/common/cqrs/query"
 	ierr "github.com/mohit/finance-go/internal/common/domain_error"
@@ -45,14 +44,15 @@ func NewHandler(config Config) *Handler {
 
 // RegisterPublicRoutes registers public routes for user registration and login.
 // These routes are accessible without authentication.
-func (h *Handler) RegisterPublic(router *mux.Router) {
-	router.HandleFunc("/users/register", h.handleRegistration).Methods(http.MethodPost)
-	router.HandleFunc("/users/login", h.handleLogin).Methods(http.MethodPost)
+func (h *Handler) RegisterPublic(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/v1/users/register", h.handleRegistration)
+	mux.HandleFunc("POST /api/v1/users/login", h.handleLogin)
 }
 
 // RegisterProtectedRoutes registers routes that require authentication.
 // This method is a placeholder and currently does not register any routes.
-func (h *Handler) RegisterProtected(router *mux.Router) {}
+func (h *Handler) RegisterProtected(mux *http.ServeMux, authMiddleware func(http.Handler) http.Handler) {}
+
 
 // handleRegistration processes user registration requests.
 // It validates the registration request, creates a registration command,
