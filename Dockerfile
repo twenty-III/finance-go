@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api/main.go
 
 # Stage 2: Development environment with air
 FROM golang:1.22.5 AS dev-stage

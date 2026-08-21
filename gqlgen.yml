@@ -1,10 +1,10 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - api/graph/*.graphqls
+  - internal/graph/*.graphqls
 
 # Where should the generated server code go?
 exec:
-  filename: api/graph/generated.go
+  filename: internal/graph/generated.go
   package: graph
 
 # Uncomment to enable federation
@@ -17,13 +17,13 @@ exec:
 
 # Where should any generated models go?
 model:
-  filename: api/graph/model/models_gen.go
+  filename: internal/graph/model/models_gen.go
   package: model
 
 # Where should the resolver implementations go?
 resolver:
   layout: follow-schema
-  dir: api/graph
+  dir: internal/graph
   package: graph
   filename_template: "{name}.resolvers.go"
   # Optional: turn on to not generate template comments above resolvers
@@ -76,7 +76,7 @@ call_argument_directives_with_null: true
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-#  - "github.com/mohit/finance-go/api/graph/model"
+#  - "github.com/mohit/finance-go/internal/graph/model"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -93,4 +93,4 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   Float32:
     model:
-      - github.com/mohit/finance-go/api/graph.Float32
+      - github.com/mohit/finance-go/internal/graph.Float32

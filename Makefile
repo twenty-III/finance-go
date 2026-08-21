@@ -1,9 +1,8 @@
 build:
-	@go build -o bin/finance cmd/main.go
+	@go build -o bin/finance cmd/api/main.go
 
 test:
-	@test_packages=$$(./scripts/filter_test_packages.sh); \
-	go test -v $$test_packages
+	@go test -v ./...
 
 run: build
 	@./bin/finance
