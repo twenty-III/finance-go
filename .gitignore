@@ -1,4 +1,36 @@
-.envrc
-bin
-tmp
-finiance-go
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Temporary and Build files
+/tmp/
+/bin/
+finance-go
+finance
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
