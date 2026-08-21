@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS expenses (
     id UUID NOT NULL UNIQUE,
     description VARCHAR(255) NOT NULL,
@@ -10,3 +11,5 @@ CREATE TABLE IF NOT EXISTS expenses (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- +goose Down
+DROP TABLE IF EXISTS expenses;

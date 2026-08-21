@@ -47,7 +47,11 @@ func main() {
 		DbName:     dbName,
 		DbHost:     dbHost,
 		DbPort:     dbPort,
+		SSLMode:    config.Envs.DBSSLMode,
 	})
+
+	// Run database migrations
+	db.RunMigrations(database)
 
 	// Initialize services and repositories
 	timeService := timeservice.New()

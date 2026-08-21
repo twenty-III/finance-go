@@ -73,8 +73,12 @@ func (h *Handler) handleRegistration(w http.ResponseWriter, r *http.Request) {
 
 	authResult, err := h.registerHandler.Handle(registerCommand)
 	if err != nil {
-		unwrappedErr := errors.Unwrap(err).(ierr.IErr)
-		h.Problem(w, errapi.Map(unwrappedErr))
+		var domainErr ierr.IErr
+		if errors.As(err, &domainErr) {
+			h.Problem(w, errapi.Map(domainErr))
+		} else {
+			h.Problem(w, errapi.NewServerError(err.Error()))
+		}
 		return
 	}
 
@@ -106,7 +110,12 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	loginQuery := loginqry.NewQuery(loginRequest.Username, loginRequest.Password)
 	authResult, err := h.loginHandler.Handle(loginQuery)
 	if err != nil {
-		h.Problem(w, errapi.Map(err.(ierr.IErr)))
+		var domainErr ierr.IErr
+		if errors.As(err, &domainErr) {
+			h.Problem(w, errapi.Map(domainErr))
+		} else {
+			h.Problem(w, errapi.NewServerError(err.Error()))
+		}
 		return
 	}
 

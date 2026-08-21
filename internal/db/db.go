@@ -21,20 +21,28 @@ type Config struct {
 	DbName     string // Name of the database
 	DbHost     string // Host where the database server is located
 	DbPort     string // Port on which the database server is listening
+	SSLMode    string // SSL mode for the database connection (disable, require, verify-full, etc.)
 }
 
 // Connect initializes and returns a singleton database connection.
 func Connect(config Config) *sql.DB {
 	once.Do(func() {
 		var err error
+
+		sslMode := config.SSLMode
+		if sslMode == "" {
+			sslMode = "require"
+		}
+
 		// Format the connection string using the provided configuration.
 		connStr := fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 			config.DbUser,
 			config.DbPassword,
 			config.DbHost,
 			config.DbPort,
 			config.DbName,
+			sslMode,
 		)
 
 		instance, err = sql.Open("postgres", connStr)

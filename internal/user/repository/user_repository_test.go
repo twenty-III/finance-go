@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/mohit/finance-go/internal/common/hash"
 	"github.com/mohit/finance-go/internal/config"
+	"github.com/mohit/finance-go/internal/db"
 	expensemodel "github.com/mohit/finance-go/internal/expense/model"
 	erruser "github.com/mohit/finance-go/internal/user/error"
 	usermodel "github.com/mohit/finance-go/internal/user/model"
@@ -50,55 +50,27 @@ func CreateTestDB(t *testing.T) *sql.DB {
 		" dbname=" + config.Envs.TestDBName +
 		" sslmode=disable"
 
-	db, err := sql.Open("postgres", connStr)
+	testDB, err := sql.Open("postgres", connStr)
 	if err != nil {
 		t.Fatalf("Failed to connect to test database: %v", err)
 	}
 
-	// Run migrations
-	runMigrations(t, connStr)
+	// Run migrations using goose
+	db.RunMigrations(testDB)
 
-	return db
+	return testDB
 }
 
-// Run migrations on the database.
-func runMigrations(t *testing.T, connStr string) {
-	// Initialize the migrate instance
-	m, err := migrate.New(
-		"file://infrastructure/db/migrations", // Path to migration files
-		connStr,                               // Connection string
-	)
-	if err != nil {
-		t.Fatalf("Failed to initialize migrate instance: %v", err)
-	}
-
-	// Run the migrations
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		t.Fatalf("Hey there, migration has failed: %v", err)
-	}
-}
-
-// Rollback migrations on the database.
-func rollbackMigrations(t *testing.T, connStr string) {
-	m, err := migrate.New(
-		"file://infrastructure/db/migrations", // Path to migration files
-		connStr,
-	)
-	if err != nil {
-		t.Fatalf("Failed to create migration instance: %v", err)
-	}
-
-	if err := m.Down(); err != nil && err != migrate.ErrNoChange {
-		t.Fatalf("Failed to rollback migrations: %v", err)
-	}
+// rollbackMigrations rolls back all migrations on the test database using goose.
+func rollbackMigrations(t *testing.T, testDB *sql.DB) {
+	db.RollbackMigrations(testDB)
 }
 
 // TestUserRepository runs a suite of tests for the UserRepository.
 func TestUserRepository(t *testing.T) {
-	connStr := "user=test_user password=test_password dbname=test_finance sslmode=disable"
 	db := CreateTestDB(t)
 	defer func() {
-		rollbackMigrations(t, connStr)
+		rollbackMigrations(t, db)
 		db.Close()
 	}()
 

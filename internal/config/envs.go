@@ -20,6 +20,7 @@ type Config struct {
 	DBUser                 string // Username for the database
 	DBPassword             string // Password for the database
 	DBName                 string // Name of the database
+	DBSSLMode              string // SSL mode for the database connection
 	JWTSecret              string // Secret key for JWT signing
 	JWTExpirationInSeconds int64  // JWT expiration time in seconds
 	TestDBHost             string // Hostname or IP address for the test database
@@ -49,6 +50,7 @@ func initConfig() Config {
 		DBUser:                 getEnv("DB_USER", "romareo"),
 		DBPassword:             getEnv("DB_PASSWORD", "PythonIsTheGOAT"),
 		DBName:                 getEnv("DB_NAME", "finance"),
+		DBSSLMode:              getEnv("DB_SSL_MODE", "require"),
 		JWTSecret:              getEnv("JWT_SECRET", "not-so-secret-now-is-it?"),
 		JWTExpirationInSeconds: getEnvAsInt("JWT_EXPIRATION_IN_SECONDS", 60*24),
 		TestDBHost:             getEnv("TEST_DB_HOST", "localhost"),
