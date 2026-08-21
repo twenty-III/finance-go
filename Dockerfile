@@ -37,14 +37,19 @@ EXPOSE 8080
 CMD ["air", "-c", ".air.toml"]
 
 # Stage 3: Production environment
-FROM scratch AS prod-stage
+FROM alpine:3.20 AS prod-stage
+
+WORKDIR /app
 
 # Copy the built application binary from build-stage
-COPY --from=build-stage /api /api
+COPY --from=build-stage /api /app/api
+
+# Copy the frontend static files
+COPY --from=build-stage /app/frontend /app/frontend
 
 # Expose the application port
 EXPOSE 8080
 
 # Command to run the application binary
-ENTRYPOINT ["/api"]
+ENTRYPOINT ["/app/api"]
 
