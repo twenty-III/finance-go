@@ -89,6 +89,9 @@ func (r *Router) Run() error {
 		graphApi.Handle("/query", r.graphQlController)
 	}
 
+	// Serve the frontend static files
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./frontend")))
+
 	log.Println("Listening on", r.addr)
 	return http.ListenAndServe(r.addr, router)
 }
