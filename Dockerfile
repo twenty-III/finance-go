@@ -1,5 +1,5 @@
 # Stage 1: Build the Go application
-FROM golang:1.22.5 AS build-stage
+FROM golang:1.25.7 AS build-stage
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api/main.go
 
 # Stage 2: Development environment with air
-FROM golang:1.22.5 AS dev-stage
+FROM golang:1.25.7 AS dev-stage
 
 WORKDIR /app
 
