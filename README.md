@@ -1,101 +1,89 @@
-# Go Backend Clean Architecture (Financial Tracker)
+# Finance Tracker Backend
 
-This is a back-end for a Financial Tracker app, built to learn GraphQL, Clean Architecture and Domain-Driven Design using vanilla Go. Feel free to use this project as a template for your own Go backend projects.
+A high-performance, robust REST and GraphQL API for personal financial tracking, designed using Clean Architecture, CQRS, and Domain-Driven Design (DDD) principles in Go.
 
-I appreciate any feedback on the project; it helps everyone, especially me.
+## Features
 
-## Technologies
+- **Dual APIs**: Exposes both a RESTful JSON API (via Gorilla Mux) and a GraphQL API (via gqlgen) offering unified business logic.
+- **Clean Architecture & CQRS**: Separation of concerns across Domain, Application, and Infrastructure layers. Strict Command Query Responsibility Segregation separates state mutations from data retrieval operations.
+- **Robust Security**: Built-in stateless JWT-based authentication via HTTP-only cookies, robust password hashing with `bcrypt`, and password strength validation.
+- **Distributed Rate Limiting**: Intelligent token-bucket rate-limiting middleware to guard against abuse.
+- **PostgreSQL Persistence**: Fully-featured Postgres repository layer with comprehensive indexing and structured database migrations (using `golang-migrate`).
+- **Docker-Ready**: Packaged with a multi-stage Dockerfile and a complete `docker-compose.yml` for instantaneous local deployment.
 
-- Go
-- Postgres
-- Docker
-- gqlgen
+## Architecture
 
-## About Me
-
-Hi, I’m Beka Birhanu. I’m currently part of the A2SV training program and work with Clean Architecture on a daily basis.
-
-### How to Run This Project
-
-You can run this Go Backend Clean Architecture project with or without Docker. Here’s how to do both:
-
-- **Clone the project**
-
-```bash
-# Move to your workspace
-cd your-workspace
-
-# Clone this project into your workspace
-git clone https://github.com/mohit/finance-go.git
-
-# Move to the project root directory
-cd finance-go
+```mermaid
+flowchart TD
+    Client[Client / REST & GraphQL] --> Router[API Layer: Mux & Gqlgen]
+    Router --> Middleware[Middleware: JWT Auth & IP Rate Limiting]
+    Middleware --> App[Application Layer: CQRS Handlers]
+    App --> Domain[Domain Layer: Entities & Core Business Rules]
+    App --> Repo[Infrastructure Layer: Postgres Repositories]
+    Repo --> DB[(PostgreSQL)]
 ```
 
-#### Run Without Docker
+### File Structure Overview
 
-1. Install Go and Postgres if not already installed on your machine.
-2. Edit a `.env` with your configuration.
-3. Run `go mod tidy`.
-4. Run `make run`.
-5. Access the API at `http://localhost:8080`.
+- `domain/`: Contains enterprise business rules, entities (`Expense`, `User`), and domain error models.
+- `application/`: Application business rules, structured around CQRS (Commands and Queries) and Interfaces.
+- `infrastructure/`: Implementations of repository interfaces, JWT auth providers, hash generation, and database migrations.
+- `api/`: Transport layer detailing REST handlers, GraphQL resolvers, routing, and HTTP middleware.
+- `cmd/`: Application entry point.
 
-#### Run With Docker
+## Getting Started
 
-1. Install Docker and Docker Compose.
-2. Run `docker-compose up -d`.
-3. Access the API at `http://localhost:8080`.
+### Prerequisites
 
-### How to Run Tests
+- Go 1.22+
+- PostgreSQL
+- Docker & Docker Compose (optional, but recommended)
+
+### Running Locally (Without Docker)
+
+1. Clone this repository to your workspace.
+2. Ensure Go and PostgreSQL are installed.
+3. Configure your environment variables in a `.env` file (you can use the provided `.env` as a base).
+4. Install dependencies:
+   ```bash
+   go mod tidy
+   ```
+5. Run the application (utilizes `air` for hot-reloading if you use `make run`):
+   ```bash
+   make run
+   ```
+   The API will be available at `http://localhost:8080`.
+
+### Running with Docker
+
+1. Ensure Docker and Docker Compose are installed.
+2. Build and start the services:
+   ```bash
+   docker-compose up -d --build
+   ```
+3. The API will be available at `http://localhost:8080` and the Postgres instance will be bound to port `5432`.
+
+## Documentation
+
+Comprehensive API documentation is available in the `docs/` directory:
+
+- [REST API Specifications](./docs/API_DEFINITION.md)
+- [GraphQL API Schema](./docs/GRAPH_API_SCHEMA.md)
+- [Database Design](./docs/DB_DESIGN.md)
+- [Aggregate Design Concepts](./docs/AGGREGATE_DESIGN.md)
+
+## Testing
+
+Run the full test suite using:
 
 ```bash
-# Run all tests
 make test
 ```
 
-## File Structure
+## Contributing
 
-![file structure](./assets/file_structure_v2.png)
+Pull requests are always welcome! For major changes, please open an issue first to discuss your proposed modifications. Ensure to update tests as appropriate.
 
-### API Documentation
+## License
 
-[RESTful APIs docs](./docs/API_DEFINITION.md)
-[GraphQL APIs docs](./docs/GRAPH_API_SCHEMA.md)
-
-### TODO
-
-- Improve based on feedback.
-- Add more test cases.
-- Collect mocks into a dedicated directory.
-
-If this project helps you in any way, show your support ❤️ by starring this project ✌️
-
-### License
-
-```
-MIT License
-
-Copyright (c) 2024 Beka Birhanu
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-### Contributing to Finance-Go
-
-All pull requests are welcome.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
