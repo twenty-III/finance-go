@@ -36,7 +36,7 @@ var Envs = initConfig()
 // It loads environment variables from a .env file and sets default values if needed.
 func initConfig() Config {
 	if err := godotenv.Load(); err != nil {
-		log.Panicln(err)
+		log.Println("Warning: .env file not found, falling back to system environment variables")
 	}
 
 	return Config{
