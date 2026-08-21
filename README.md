@@ -85,6 +85,4 @@ make test
 
 Pull requests are always welcome! For major changes, please open an issue first to discuss your proposed modifications. Ensure to update tests as appropriate.
 
-## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
