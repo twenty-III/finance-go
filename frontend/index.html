@@ -3,230 +3,876 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Tracker Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Finance Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-light: #eef2ff;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .app { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 20;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+            padding: 0 8px 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-logo span { color: var(--text); }
+
+        .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover { background: var(--bg); color: var(--text); }
+        .nav-item.active { background: var(--accent-light); color: var(--accent); }
+        .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .user-info { display: flex; align-items: center; gap: 10px; padding: 8px; }
+
+        .user-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 13px; flex-shrink: 0;
+        }
+
+        .user-name { font-size: 13px; font-weight: 500; }
+        .user-role { font-size: 11px; color: var(--text-muted); }
+
+        .main { flex: 1; margin-left: 240px; padding: 32px 40px; }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .page-title { font-size: 22px; font-weight: 700; }
+
+        /* Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            font-size: 12px; font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-value.accent { color: var(--accent); }
+        .stat-value.success { color: var(--success); }
+
+        /* Table */
+        .table-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .table-toolbar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            text-align: left;
+            padding: 12px 20px;
+            font-size: 11px; font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th.right, td.right { text-align: right; }
+        th.center, td.center { text-align: center; }
+
+        td {
+            padding: 14px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--bg); }
+
+        .amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .table-empty {
+            padding: 48px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .table-empty svg { width: 40px; height: 40px; margin: 0 auto 12px; opacity: 0.3; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-size: 13px; font-weight: 500;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn svg { width: 15px; height: 15px; }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+        .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+        .btn-icon {
+            background: transparent; border: none;
+            color: var(--text-muted); padding: 6px;
+            border-radius: var(--radius); cursor: pointer;
+            transition: all 0.15s; display: inline-flex;
+        }
+        .btn-icon:hover { background: var(--bg); color: var(--text); }
+        .btn-icon.danger:hover { color: var(--danger); background: #fef2f2; }
+
+        .btn-link {
+            background: none; border: none;
+            color: var(--accent); cursor: pointer;
+            font-size: 13px; font-weight: 500;
+            padding: 0; font-family: inherit;
+        }
+        .btn-link:hover { text-decoration: underline; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 13px; font-weight: 500;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--surface);
+            transition: border-color 0.15s;
+            outline: none;
+        }
+
+        .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .select-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 28px;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 12px;
+            width: 100%; max-width: 440px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title { font-size: 16px; font-weight: 600; }
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Auth Page */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            padding: 16px;
+        }
+
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%; max-width: 400px;
+            box-shadow: var(--shadow);
+        }
+
+        .auth-logo {
+            text-align: center;
+            font-size: 22px; font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .auth-logo span { color: var(--text); }
+
+        .auth-subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 20px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 13px;
+            display: flex; align-items: center; gap: 8px;
+            max-width: 360px;
+            animation: slideIn 0.2s ease-out;
+        }
+
+        .toast.error { border-left: 3px solid var(--danger); }
+        .toast.success { border-left: 3px solid var(--success); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .table-toolbar { flex-direction: column; align-items: stretch; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans antialiased" x-data="app()">
-    <!-- Navbar -->
-    <nav class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                    <span class="font-bold text-xl">Finance Tracker</span>
+<body x-data="app()" x-cloak>
+
+    <!-- Toast notifications -->
+    <div class="toast-container">
+        <template x-for="(t, i) in toasts" :key="i">
+            <div class="toast" :class="t.type" x-show="t.visible" x-transition>
+                <span x-text="t.message"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Auth Page -->
+    <div x-show="!user" class="auth-page">
+        <div class="auth-card">
+            <div class="auth-logo">Finance <span>Tracker</span></div>
+            <p class="auth-subtitle" x-text="isLogin ? 'Sign in to your account' : 'Create a new account'"></p>
+            <form @submit.prevent="submitAuth">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input x-model="authForm.username" type="text" required class="form-input" placeholder="Enter your username" minlength="3" maxlength="32">
                 </div>
-                <div x-show="user" class="flex items-center gap-4">
-                    <span x-text="'Hello, ' + user.username"></span>
-                    <button @click="logout" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-semibold transition">Logout</button>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input x-model="authForm.password" type="password" required class="form-input" placeholder="Enter your password" minlength="8">
                 </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:10px 16px; margin-top:8px;" :disabled="loading">
+                    <span x-text="loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')"></span>
+                </button>
+            </form>
+            <div class="auth-toggle">
+                <span x-text="isLogin ? 'Don\'t have an account?' : 'Already have an account?'"></span>
+                <button class="btn-link" @click="isLogin = !isLogin" x-text="isLogin ? 'Register' : 'Sign in'"></button>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <main class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <!-- Error Alert -->
-        <div x-show="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline" x-text="error"></span>
-            <span @click="error = ''" class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer">
-                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-            </span>
+    <!-- App Layout -->
+    <div x-show="user" class="app">
+        <aside class="sidebar">
+            <div class="sidebar-logo">Finance <span>Tracker</span></div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                    Dashboard
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" x-text="user ? user.username.charAt(0).toUpperCase() : ''"></div>
+                    <div>
+                        <div class="user-name" x-text="user ? user.username : ''"></div>
+                        <div class="user-role">Personal Account</div>
+                    </div>
+                </div>
+                <button class="nav-item" @click="logout" style="margin-top:8px; color:var(--danger);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <div class="main">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <button class="btn btn-primary" @click="openAddModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Add Expense
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Expenses</div>
+                    <div class="stat-value accent" x-text="allExpenses.length"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Spent</div>
+                    <div class="stat-value" x-text="'$' + totalSpent.toFixed(2)"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">This Month</div>
+                    <div class="stat-value success" x-text="'$' + thisMonthSpent.toFixed(2)"></div>
+                </div>
+            </div>
+
+            <!-- Expenses Table -->
+            <div class="table-container">
+                <div class="table-toolbar">
+                    <div class="table-toolbar-left">
+                        <select class="form-input select-input" style="width:auto;" x-model="sortField" @change="fetchExpenses()">
+                            <option value="date">Sort by Date</option>
+                            <option value="amount">Sort by Amount</option>
+                        </select>
+                        <select class="form-input select-input" style="width:auto;" x-model="sortOrder" @change="fetchExpenses()">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-ghost" @click="fetchExpenses()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"/></svg>
+                        Refresh
+                    </button>
+                </div>
+
+                <template x-if="allExpenses.length > 0">
+                    <div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th class="right">Amount</th>
+                                    <th class="center" style="width:100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="exp in allExpenses" :key="exp.id">
+                                    <tr>
+                                        <td style="white-space:nowrap; color:var(--text-secondary);" x-text="formatDate(exp.date)"></td>
+                                        <td x-text="exp.description"></td>
+                                        <td class="right amount" x-text="'$' + exp.amount.toFixed(2)"></td>
+                                        <td class="center" style="white-space:nowrap;">
+                                            <button class="btn-icon" @click="openEditModal(exp)" title="Edit">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+                                            </button>
+                                            <button class="btn-icon danger" @click="confirmDelete(exp)" title="Delete">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        <div class="table-footer" x-show="cursor">
+                            <span x-text="'Showing ' + allExpenses.length + ' expenses'"></span>
+                            <button class="btn btn-ghost" @click="loadMore()" :disabled="loading">Load More</button>
+                        </div>
+                        <div class="table-footer" x-show="!cursor">
+                            <span x-text="allExpenses.length + ' expense' + (allExpenses.length !== 1 ? 's' : '') + ' total'"></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="allExpenses.length === 0 && !loading">
+                    <div class="table-empty">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+                        <p>No expenses yet</p>
+                        <p style="margin-top:4px; font-size:12px;">Click "Add Expense" to get started.</p>
+                    </div>
+                </template>
+            </div>
         </div>
+    </div>
 
-        <!-- Login / Register View -->
-        <div x-show="!user" class="max-w-md mx-auto bg-white p-8 rounded shadow-md">
-            <h2 class="text-2xl font-bold mb-6 text-center" x-text="isLogin ? 'Sign In' : 'Create Account'"></h2>
-            <form @submit.prevent="submitAuth">
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
-                    <input x-model="authForm.username" type="text" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <!-- Add / Edit Modal -->
+    <div x-show="showModal" class="modal-backdrop" @click.self="showModal = false" x-transition>
+        <div class="modal" @click.stop>
+            <div class="modal-header">
+                <h3 class="modal-title" x-text="editingExpense ? 'Edit Expense' : 'Add Expense'"></h3>
+                <button class="btn-icon" @click="showModal = false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form @submit.prevent="saveExpense">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input x-model="expenseForm.description" type="text" required class="form-input" placeholder="e.g. Grocery shopping">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Amount ($)</label>
+                        <input x-model="expenseForm.amount" type="number" step="0.01" min="0.01" required class="form-input" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input x-model="expenseForm.date" type="datetime-local" required class="form-input">
+                    </div>
                 </div>
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                    <input x-model="authForm.password" type="password" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" @click="showModal = false">Cancel</button>
+                    <button type="submit" class="btn btn-primary" :disabled="loading">
+                        <span x-text="loading ? 'Saving...' : (editingExpense ? 'Update' : 'Add Expense')"></span>
+                    </button>
                 </div>
-                <div class="flex items-center justify-between">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition w-full" x-text="isLogin ? 'Login' : 'Register'"></button>
-                </div>
-                <p class="text-center text-sm text-gray-600 mt-4 cursor-pointer hover:text-indigo-600 transition" @click="isLogin = !isLogin" x-text="isLogin ? 'Need an account? Register' : 'Already have an account? Sign in'"></p>
             </form>
         </div>
+    </div>
 
-        <!-- Dashboard View -->
-        <div x-show="user" x-cloak class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <!-- Add Expense Form -->
-            <div class="col-span-1 bg-white p-6 rounded shadow-md">
-                <h3 class="text-xl font-bold mb-4">Add Expense</h3>
-                <form @submit.prevent="addExpense">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
-                        <input x-model="expenseForm.description" type="text" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Amount ($)</label>
-                        <input x-model="expenseForm.amount" type="number" step="0.01" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Date</label>
-                        <input x-model="expenseForm.date" type="datetime-local" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition w-full">Save Expense</button>
-                </form>
+    <!-- Delete Confirmation Modal -->
+    <div x-show="showDeleteModal" class="modal-backdrop" @click.self="showDeleteModal = false" x-transition>
+        <div class="modal" @click.stop>
+            <div class="modal-header">
+                <h3 class="modal-title">Delete Expense</h3>
+                <button class="btn-icon" @click="showDeleteModal = false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
-
-            <!-- Expenses List -->
-            <div class="col-span-1 md:col-span-2 bg-white p-6 rounded shadow-md">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">Your Expenses</h3>
-                    <button @click="fetchExpenses" class="text-indigo-600 hover:text-indigo-800">↻ Refresh</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead class="bg-gray-50 text-gray-600 uppercase text-sm leading-normal border-b">
-                            <tr>
-                                <th class="py-3 px-6 text-left">Date</th>
-                                <th class="py-3 px-6 text-left">Description</th>
-                                <th class="py-3 px-6 text-right">Amount</th>
-                                <th class="py-3 px-6 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm font-light">
-                            <template x-for="exp in expenses" :key="exp.id">
-                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                    <td class="py-3 px-6 text-left whitespace-nowrap" x-text="new Date(exp.date).toLocaleDateString()"></td>
-                                    <td class="py-3 px-6 text-left" x-text="exp.description"></td>
-                                    <td class="py-3 px-6 text-right font-bold" x-text="'$' + exp.amount.toFixed(2)"></td>
-                                    <td class="py-3 px-6 text-center">
-                                        <button @click="deleteExpense(exp.id)" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">Delete</button>
-                                    </td>
-                                </tr>
-                            </template>
-                            <tr x-show="expenses.length === 0">
-                                <td colspan="4" class="py-6 text-center text-gray-500">No expenses found. Add some!</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="modal-body">
+                <p style="font-size:14px; color:var(--text-secondary);">Are you sure you want to delete "<span x-text="deletingExpense?.description" style="font-weight:600; color:var(--text);"></span>"? This action cannot be undone.</p>
             </div>
-
+            <div class="modal-footer">
+                <button class="btn btn-ghost" @click="showDeleteModal = false">Cancel</button>
+                <button class="btn btn-primary" style="background:var(--danger);" @click="deleteExpense()" :disabled="loading">
+                    <span x-text="loading ? 'Deleting...' : 'Delete'"></span>
+                </button>
+            </div>
         </div>
-    </main>
+    </div>
 
     <script>
         function app() {
             return {
+                // State
                 user: null,
                 isLogin: true,
-                error: '',
+                loading: false,
                 authForm: { username: '', password: '' },
                 expenseForm: { description: '', amount: '', date: '' },
-                expenses: [],
+                allExpenses: [],
+                cursor: '',
+                sortField: 'date',
+                sortOrder: 'desc',
+                showModal: false,
+                showDeleteModal: false,
+                editingExpense: null,
+                deletingExpense: null,
+                toasts: [],
 
-                init() {
-                    // Pre-fill date with current local time
-                    const now = new Date();
-                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                    this.expenseForm.date = now.toISOString().slice(0, 16);
+                // Computed
+                get totalSpent() {
+                    return this.allExpenses.reduce((sum, e) => sum + e.amount, 0);
                 },
 
+                get thisMonthSpent() {
+                    const now = new Date();
+                    return this.allExpenses
+                        .filter(e => {
+                            const d = new Date(e.date);
+                            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                        })
+                        .reduce((sum, e) => sum + e.amount, 0);
+                },
+
+                // Helpers
+                formatDate(dateStr) {
+                    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                },
+
+                nowLocal() {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    return now.toISOString().slice(0, 16);
+                },
+
+                toast(message, type = 'success') {
+                    const t = { message, type, visible: true };
+                    this.toasts.push(t);
+                    setTimeout(() => { t.visible = false; }, 3500);
+                    setTimeout(() => { this.toasts = this.toasts.filter(x => x.visible); }, 4000);
+                },
+
+                // Auth — uses actual routes: /api/v1/users/register and /api/v1/users/login
                 async submitAuth() {
-                    this.error = '';
+                    this.loading = true;
                     try {
-                        const endpoint = this.isLogin ? '/api/v1/auth/signIn' : '/api/v1/users';
+                        const endpoint = this.isLogin ? '/api/v1/users/login' : '/api/v1/users/register';
                         const res = await fetch(endpoint, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                username: this.authForm.username,
-                                password: this.authForm.password
-                            })
+                            body: JSON.stringify({ username: this.authForm.username, password: this.authForm.password })
                         });
-
-                        const data = await res.json();
-                        
                         if (!res.ok) {
-                            throw new Error(data.message || data.error || 'Authentication failed');
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(err.error || 'Authentication failed');
                         }
-
-                        this.user = data;
-                        this.authForm.password = ''; // clear password
-                        this.fetchExpenses();
+                        this.user = await res.json();
+                        this.authForm = { username: '', password: '' };
+                        this.toast(this.isLogin ? 'Welcome back!' : 'Account created!');
+                        await this.fetchAllExpenses();
                     } catch (err) {
-                        this.error = err.message;
+                        this.toast(err.message, 'error');
+                    } finally {
+                        this.loading = false;
                     }
                 },
 
                 async logout() {
-                    this.error = '';
-                    try {
-                        await fetch('/api/v1/auth/signOut', { method: 'POST' });
-                        this.user = null;
-                        this.expenses = [];
-                    } catch (err) {
-                        this.error = 'Failed to logout';
-                    }
+                    this.user = null;
+                    this.allExpenses = [];
+                    this.cursor = '';
+                    this.toast('Signed out');
                 },
 
+                // Expenses — uses sortBy=field.order format and cursor-based pagination
                 async fetchExpenses() {
                     if (!this.user) return;
-                    this.error = '';
+                    this.loading = true;
                     try {
-                        // The backend route is /api/v1/users/{userId}/expenses
-                        const res = await fetch(`/api/v1/users/${this.user.id}/expenses`);
-                        if (!res.ok) throw new Error('Failed to fetch expenses');
+                        const params = new URLSearchParams({
+                            sortBy: `${this.sortField}.${this.sortOrder}`,
+                            limit: '100'
+                        });
+                        const res = await fetch(`/api/v1/users/${this.user.id}/expenses?${params}`);
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(err.error || 'Failed to fetch expenses');
+                        }
                         const data = await res.json();
-                        this.expenses = data.expenses || [];
+                        this.allExpenses = data.expenses || [];
+                        this.cursor = data.cursor || '';
                     } catch (err) {
-                        this.error = err.message;
+                        this.toast(err.message, 'error');
+                    } finally {
+                        this.loading = false;
                     }
                 },
 
-                async addExpense() {
+                // Fetches all pages of expenses to get accurate totals for stats
+                async fetchAllExpenses() {
                     if (!this.user) return;
-                    this.error = '';
+                    this.loading = true;
+                    this.allExpenses = [];
+                    this.cursor = '';
+                    try {
+                        let nextCursor = '';
+                        do {
+                            const params = new URLSearchParams({
+                                sortBy: `${this.sortField}.${this.sortOrder}`,
+                                limit: '100'
+                            });
+                            if (nextCursor) params.set('cursor', nextCursor);
+                            const res = await fetch(`/api/v1/users/${this.user.id}/expenses?${params}`);
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err.error || 'Failed to fetch expenses');
+                            }
+                            const data = await res.json();
+                            this.allExpenses = [...this.allExpenses, ...(data.expenses || [])];
+                            nextCursor = data.cursor || '';
+                        } while (nextCursor);
+                        this.cursor = '';
+                    } catch (err) {
+                        this.toast(err.message, 'error');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async loadMore() {
+                    if (!this.user || !this.cursor) return;
+                    this.loading = true;
+                    try {
+                        const params = new URLSearchParams({
+                            cursor: this.cursor,
+                            sortBy: `${this.sortField}.${this.sortOrder}`,
+                            limit: '100'
+                        });
+                        const res = await fetch(`/api/v1/users/${this.user.id}/expenses?${params}`);
+                        if (!res.ok) throw new Error('Failed to load more');
+                        const data = await res.json();
+                        this.allExpenses = [...this.allExpenses, ...(data.expenses || [])];
+                        this.cursor = data.cursor || '';
+                    } catch (err) {
+                        this.toast(err.message, 'error');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                openAddModal() {
+                    this.editingExpense = null;
+                    this.expenseForm = { description: '', amount: '', date: this.nowLocal() };
+                    this.showModal = true;
+                },
+
+                openEditModal(exp) {
+                    this.editingExpense = exp;
+                    const d = new Date(exp.date);
+                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                    this.expenseForm = {
+                        description: exp.description,
+                        amount: exp.amount,
+                        date: d.toISOString().slice(0, 16)
+                    };
+                    this.showModal = true;
+                },
+
+                async saveExpense() {
+                    if (!this.user) return;
+                    this.loading = true;
                     try {
                         const dateIso = new Date(this.expenseForm.date).toISOString();
-                        const res = await fetch(`/api/v1/users/${this.user.id}/expenses`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                description: this.expenseForm.description,
-                                amount: parseFloat(this.expenseForm.amount),
-                                date: dateIso
-                            })
-                        });
-                        
-                        if (!res.ok) {
-                            const errData = await res.json();
-                            throw new Error(errData.message || 'Failed to add expense');
+                        if (this.editingExpense) {
+                            // Update uses PATCH
+                            const res = await fetch(`/api/v1/users/${this.user.id}/expenses/${this.editingExpense.id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    description: this.expenseForm.description,
+                                    amount: parseFloat(this.expenseForm.amount),
+                                    date: dateIso
+                                })
+                            });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err.error || 'Failed to update expense');
+                            }
+                            this.toast('Expense updated');
+                        } else {
+                            // Create uses POST
+                            const res = await fetch(`/api/v1/users/${this.user.id}/expenses`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    description: this.expenseForm.description,
+                                    amount: parseFloat(this.expenseForm.amount),
+                                    date: dateIso
+                                })
+                            });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => ({}));
+                                throw new Error(err.error || 'Failed to add expense');
+                            }
+                            this.toast('Expense added');
                         }
-                        
-                        this.expenseForm.description = '';
-                        this.expenseForm.amount = '';
-                        this.fetchExpenses();
+                        this.showModal = false;
+                        await this.fetchAllExpenses();
                     } catch (err) {
-                        this.error = err.message;
+                        this.toast(err.message, 'error');
+                    } finally {
+                        this.loading = false;
                     }
                 },
 
-                async deleteExpense(id) {
-                    if (!this.user || !confirm('Are you sure you want to delete this expense?')) return;
-                    this.error = '';
+                confirmDelete(exp) {
+                    this.deletingExpense = exp;
+                    this.showDeleteModal = true;
+                },
+
+                async deleteExpense() {
+                    if (!this.user || !this.deletingExpense) return;
+                    this.loading = true;
                     try {
-                        const res = await fetch(`/api/v1/users/${this.user.id}/expenses/${id}`, {
-                            method: 'DELETE'
-                        });
-                        if (!res.ok) throw new Error('Failed to delete expense');
-                        this.fetchExpenses();
+                        const res = await fetch(`/api/v1/users/${this.user.id}/expenses/${this.deletingExpense.id}`, { method: 'DELETE' });
+                        // DELETE doesn't exist in the backend — we'll use PATCH to clear it
+                        // Actually checking the routes: DELETE is not registered. Let's handle gracefully.
+                        if (!res.ok && res.status !== 405) throw new Error('Failed to delete expense');
+                        if (res.status === 405) {
+                            this.toast('Delete is not supported by the API', 'error');
+                            this.showDeleteModal = false;
+                            return;
+                        }
+                        this.showDeleteModal = false;
+                        this.deletingExpense = null;
+                        this.toast('Expense deleted');
+                        await this.fetchAllExpenses();
                     } catch (err) {
-                        this.error = err.message;
+                        this.toast(err.message, 'error');
+                    } finally {
+                        this.loading = false;
                     }
                 }
             }
         }
     </script>
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
 </body>
 </html>
